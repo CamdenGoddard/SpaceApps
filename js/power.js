@@ -12,7 +12,7 @@ const PowerAPI = (() => {
   /* The POWER API does not send CORS headers, so browsers can't call it
      directly. RELAY is a Cloudflare Worker that forwards GET requests to
      power.larc.nasa.gov unchanged and adds Access-Control-Allow-Origin. */
-  const RELAY = '';
+  const RELAY = 'https://nasa-power-relay.cgoddardoh.workers.dev';
   const COMMUNITY = 'AG';
   const END_YEAR = new Date().getUTCFullYear() - 1; // last complete year
 
@@ -151,7 +151,10 @@ const PowerAPI = (() => {
       end: String(END_YEAR),
       format: 'JSON'
     });
-    const path = `/api/temporal/annual/point?${params}`;
+    /* The monthly endpoint includes annual means keyed as month "13";
+       parseSeries extracts them (the annual endpoint was removed from
+       the POWER API). */
+    const path = `/api/temporal/monthly/point?${params}`;
     const res = await getResponse(path, signal);
     if (!res.ok) {
       let msg = `NASA POWER returned ${res.status}`;
