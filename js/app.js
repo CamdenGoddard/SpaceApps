@@ -106,6 +106,8 @@
   }
 
   function setLocation(slot, loc) {
+    const hint = document.getElementById('map-hint');
+    if (hint) hint.classList.add('hidden');
     state.locations[slot] = loc;
     state.results[slot] = null;
     if (state.markers[slot]) map.removeLayer(state.markers[slot]);
@@ -270,6 +272,17 @@
     return 'p = ' + p.toPrecision(2);
   }
 
+  /* Translate a p-value into plain language the card can lead with. */
+  function oddsPhrase(p) {
+    if (p < 0.0001) return 'under 1 in 10,000';
+    if (p < 0.01) {
+      const n = Math.round(1 / p);
+      const nice = n >= 1000 ? Math.round(n / 100) * 100 : n >= 100 ? Math.round(n / 10) * 10 : n;
+      return 'about 1 in ' + nice.toLocaleString('en-US');
+    }
+    return 'about ' + Math.round(p * 100) + '%';
+  }
+
   function verdictCard(slot, letter) {
     const { series, trend } = state.results[slot];
     const v = PowerAPI.getVariable(state.variable);
@@ -282,9 +295,9 @@
     const absTotal = Math.abs(trend.totalChange);
     const d = v.decimals;
 
-    const sigBadge = trend.significant
-      ? `<span class="sig-badge sig-yes" title="Mann-Kendall test">✓ Statistically significant (${pFmt(trend.mk.p)}, below α = 0.05)</span>`
-      : `<span class="sig-badge sig-no" title="Mann-Kendall test">○ Not statistically significant (${pFmt(trend.mk.p)}, above α = 0.05)</span>`;
+    const sigLine = trend.significant
+      ? `<p class="sig-line sig-yes"><strong>Statistically significant.</strong> The odds a trend this consistent is random noise: ${oddsPhrase(trend.mk.p)} (Mann-Kendall ${pFmt(trend.mk.p)}).</p>`
+      : `<p class="sig-line sig-no"><strong>Not statistically significant.</strong> Random year-to-year noise produces a pattern this weak ${oddsPhrase(trend.mk.p)} of the time (Mann-Kendall ${pFmt(trend.mk.p)}).</p>`;
 
     return `
       <article class="verdict-card">
@@ -292,21 +305,18 @@
           ${letter ? `<span class="slot-dot slot-dot-${slot}">${letter}</span>` : ''}
           <div>
             <h3>${escapeHtml(locationLabel(loc))}</h3>
-            <p class="card-sub">${escapeHtml(series.longname)} · ${series.years[0]}-${series.years[series.years.length - 1]} · ${trend.n} yearly values</p>
+            <p class="card-sub">${escapeHtml(series.longname)}, ${series.years[0]} to ${series.years[series.years.length - 1]}, ${trend.n} yearly values</p>
           </div>
         </header>
-        <div class="verdict-line ${dirClass}">
-          <span class="verdict-arrow">${arrow}</span>
-          <span class="verdict-word">${dir}</span>
-        </div>
+        <p class="verdict-dir ${dirClass}">${arrow} ${dir}</p>
+        <p class="verdict-hero ${dirClass}">${sign}${TrendChart.fmt(absSlope, d)}<span class="hero-unit">${series.units}/decade</span></p>
         <div class="chart-wrap" id="chart-${slot}"></div>
         <dl class="stats-grid">
-          <div><dt>Sen's slope (rate)</dt><dd>${sign}${TrendChart.fmt(absSlope, d)} ${series.units}/decade</dd></div>
           <div><dt>Change over ${trend.span} yrs</dt><dd>${sign}${TrendChart.fmt(absTotal, d)} ${series.units}${!v.intervalScale && isFinite(trend.pctChange) ? ` (${sign}${TrendChart.fmt(Math.abs(trend.pctChange), 1)}%)` : ''}</dd></div>
           <div><dt>Mann-Kendall</dt><dd>Z = ${TrendChart.fmt(trend.mk.Z, 2)}, ${pFmt(trend.mk.p)}</dd></div>
-          <div><dt>Linear regression</dt><dd>slope ${trend.ols.slope >= 0 ? '+' : '−'}${TrendChart.fmt(Math.abs(trend.ols.slope * 10), d)}/decade, ${pFmt(trend.ols.p)}, r² = ${TrendChart.fmt(trend.ols.r2, 2)}</dd></div>
+          <div><dt>Linear regression</dt><dd>${trend.ols.slope >= 0 ? '+' : '−'}${TrendChart.fmt(Math.abs(trend.ols.slope * 10), d)}/decade, ${pFmt(trend.ols.p)}, r² = ${TrendChart.fmt(trend.ols.r2, 2)}</dd></div>
         </dl>
-        <div class="sig-row">${sigBadge}</div>
+        ${sigLine}
       </article>`;
   }
 
@@ -318,7 +328,7 @@
       html += compareSummary();
     }
     html += `<div class="scan-cta">
-      <button id="grid-btn" class="btn-secondary">🗺 Scan the surrounding region: <em>where</em> is it changing?</button>
+      <button id="grid-btn" class="btn-secondary">Map trends across this region</button>
       <span id="grid-status"></span>
     </div>`;
     resultsEl.innerHTML = html;
@@ -429,7 +439,7 @@
   function divergingColor(t) {
     const lerp = (a, b, u) => Math.round(a + (b - a) * u);
     const hex = (r, g, b) => `#${[r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')}`;
-    const blue = [42, 120, 214], gray = [160, 158, 150], red = [227, 73, 72];
+    const blue = [91, 155, 232], gray = [86, 96, 118], red = [230, 103, 103];
     if (t < 0) { const u = -t; return hex(lerp(gray[0], blue[0], u), lerp(gray[1], blue[1], u), lerp(gray[2], blue[2], u)); }
     const u = t; return hex(lerp(gray[0], red[0], u), lerp(gray[1], red[1], u), lerp(gray[2], red[2], u));
   }

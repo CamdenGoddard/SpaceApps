@@ -6,6 +6,9 @@
   <title>TrendScope: What's changing, where, and is it significant?</title>
   <meta name="description" content="Pick any point on Earth, pick a NASA-measured variable, and see four decades of change. Real trend statistics (Mann-Kendall, Sen's slope) decide whether it's significant.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📈</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600&display=swap">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="stylesheet" href="css/style.css">
@@ -13,7 +16,7 @@
 <body>
 
   <header class="site-header">
-    <h1>Trend<span class="scope">Scope</span></h1>
+    <h1>TrendScope</h1>
     <p class="tagline">Click a spot on Earth. See 40+ years of NASA data. Find out what's changing, how fast, and whether it's statistically significant.</p>
     <span id="status" class="status"></span>
   </header>
@@ -46,16 +49,15 @@
       </div>
     </aside>
 
-    <section id="map" aria-label="World map. Click to select a location"></section>
+    <section id="map" aria-label="World map. Click to select a location"><div id="map-hint">Click anywhere on Earth to analyze it</div></section>
 
     <section class="results-pane" id="results" aria-live="polite"></section>
 
   </main>
 
   <footer class="site-footer">
-    Data: <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">NASA POWER</a> (MERRA-2 &amp; CERES-derived, 1981 to present) ·
-    Basemap: <a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener">NASA GIBS Blue Marble</a> ·
-    Statistics: Mann-Kendall trend test, Sen's slope, OLS regression, computed live in your browser.
+    Data from <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">NASA POWER</a> (MERRA-2 and CERES derived, 1981 to present), on a <a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener">NASA GIBS Blue Marble</a> basemap.
+    All statistics (Mann-Kendall test, Sen's slope, OLS regression) run live in your browser.
     Built for the NASA Space Apps Challenge.
   </footer>
 
