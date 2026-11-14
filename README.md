@@ -10,6 +10,8 @@ noise.
 
 **Live demo:** https://camdengoddard.github.io/SpaceApps/
 
+![TrendScope demo](demo.gif)
+
 ## The challenge
 
 Change in Earth's interconnected environmental system runs in consistent
