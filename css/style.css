@@ -129,6 +129,18 @@ body {
   animation: hint-pulse 2.6s ease-in-out infinite;
 }
 #map-hint.hidden { display: none; }
+@media (max-width: 640px) {
+  #map-hint {
+    white-space: normal;
+    text-align: center;
+    max-width: calc(100% - 28px);
+    font-size: 0.8rem;
+  }
+  .site-header { padding: 13px 16px 11px; gap: 10px; }
+  .site-header h1 { font-size: 1.25rem; }
+  .tagline { font-size: 0.82rem; min-width: 0; }
+  .panel, .results-pane { padding: 16px; }
+}
 @keyframes hint-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(57, 135, 229, 0.35); }
   50% { box-shadow: 0 0 0 7px rgba(57, 135, 229, 0); }
