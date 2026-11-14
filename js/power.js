@@ -38,22 +38,22 @@ const PowerAPI = (() => {
      meteorology begins 1981 (MERRA-2). */
   const VARIABLES = [
     {
-      id: 'T2M', name: 'Air temperature (2 m)', units: '°C', startYear: 1981,
+      id: 'T2M', intervalScale: true, name: 'Air temperature (2 m)', units: '°C', startYear: 1981,
       group: 'Temperature', decimals: 2,
       blurb: 'Average air temperature at 2 meters, the classic climate-change variable.'
     },
     {
-      id: 'T2M_MAX', name: 'Max daily temperature', units: '°C', startYear: 1981,
+      id: 'T2M_MAX', intervalScale: true, name: 'Max daily temperature', units: '°C', startYear: 1981,
       group: 'Temperature', decimals: 2,
       blurb: 'Annual mean of daily maximum temperature. Tracks heat extremes.'
     },
     {
-      id: 'T2M_MIN', name: 'Min daily temperature', units: '°C', startYear: 1981,
+      id: 'T2M_MIN', intervalScale: true, name: 'Min daily temperature', units: '°C', startYear: 1981,
       group: 'Temperature', decimals: 2,
       blurb: 'Annual mean of daily minimum temperature. Nights often warm faster than days.'
     },
     {
-      id: 'TS', name: 'Earth skin temperature', units: '°C', startYear: 1981,
+      id: 'TS', intervalScale: true, name: 'Earth skin temperature', units: '°C', startYear: 1981,
       group: 'Temperature', decimals: 2,
       blurb: 'Temperature of the land/sea surface itself, as a satellite sees it.'
     },
@@ -88,7 +88,7 @@ const PowerAPI = (() => {
       blurb: 'Near-surface wind. Relevant to wind power and "global terrestrial stilling".'
     },
     {
-      id: 'PS', name: 'Surface pressure', units: 'kPa', startYear: 1981,
+      id: 'PS', intervalScale: true, name: 'Surface pressure', units: 'kPa', startYear: 1981,
       group: 'Energy', decimals: 3,
       blurb: 'Atmospheric pressure at the surface. Shifts with circulation changes.'
     }

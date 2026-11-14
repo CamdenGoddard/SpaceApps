@@ -71,8 +71,8 @@
     attribution: '&copy; OpenStreetMap contributors', maxZoom: 12
   });
   const labels = L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png',
-    { attribution: '&copy; CARTO', maxZoom: 12, pane: 'shadowPane' }
+    'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+    { attribution: 'Labels: Esri', maxZoom: 10, pane: 'shadowPane' }
   );
   blueMarble.addTo(map);
   labels.addTo(map);
@@ -302,7 +302,7 @@
         <div class="chart-wrap" id="chart-${slot}"></div>
         <dl class="stats-grid">
           <div><dt>Sen's slope (rate)</dt><dd>${sign}${TrendChart.fmt(absSlope, d)} ${series.units}/decade</dd></div>
-          <div><dt>Change over ${trend.span} yrs</dt><dd>${sign}${TrendChart.fmt(absTotal, d)} ${series.units}${isFinite(trend.pctChange) ? ` (${sign}${TrendChart.fmt(Math.abs(trend.pctChange), 1)}%)` : ''}</dd></div>
+          <div><dt>Change over ${trend.span} yrs</dt><dd>${sign}${TrendChart.fmt(absTotal, d)} ${series.units}${!v.intervalScale && isFinite(trend.pctChange) ? ` (${sign}${TrendChart.fmt(Math.abs(trend.pctChange), 1)}%)` : ''}</dd></div>
           <div><dt>Mann-Kendall</dt><dd>Z = ${TrendChart.fmt(trend.mk.Z, 2)}, ${pFmt(trend.mk.p)}</dd></div>
           <div><dt>Linear regression</dt><dd>slope ${trend.ols.slope >= 0 ? '+' : '−'}${TrendChart.fmt(Math.abs(trend.ols.slope * 10), d)}/decade, ${pFmt(trend.ols.p)}, r² = ${TrendChart.fmt(trend.ols.r2, 2)}</dd></div>
         </dl>
