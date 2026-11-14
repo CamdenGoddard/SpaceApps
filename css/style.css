@@ -1,27 +1,9 @@
 /* ============================================================
-   TrendScope — styles
-   Light/dark theming via CSS custom properties.
+   TrendScope: styles
+   Dark theme via CSS custom properties.
    ============================================================ */
 
 :root {
-  color-scheme: light;
-  --surface-1: #fcfcfb;
-  --page: #f9f9f7;
-  --text-primary: #0b0b0b;
-  --text-secondary: #52514e;
-  --text-muted: #898781;
-  --grid-line: #e1e0d9;
-  --axis-line: #c3c2b7;
-  --border: rgba(11, 11, 11, 0.10);
-  --series-1: #2a78d6;
-  --series-2: #eb6834;
-  --accent: #2a78d6;
-  --up: #e34948;
-  --down: #2a78d6;
-  --good-text: #006300;
-}
-
-:root[data-theme="dark"] {
   color-scheme: dark;
   --surface-1: #1a1a19;
   --page: #0d0d0d;
@@ -70,15 +52,6 @@ body {
   color: var(--text-secondary);
   font-size: 0.9rem;
   flex: 1;
-}
-#theme-toggle {
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-primary);
-  border-radius: 8px;
-  width: 34px; height: 34px;
-  font-size: 1rem;
-  cursor: pointer;
 }
 .status { font-size: 0.85rem; color: var(--text-secondary); min-height: 1.2em; }
 .status.busy::before { content: "⏳ "; }
@@ -339,13 +312,13 @@ select {
 .legend-note { display: block; margin-top: 3px; }
 .grid-tip { font-variant-numeric: tabular-nums; }
 
-/* leaflet dark-mode chrome */
-:root[data-theme="dark"] .leaflet-control-layers,
-:root[data-theme="dark"] .leaflet-control-zoom a,
-:root[data-theme="dark"] .leaflet-control-attribution {
+/* leaflet chrome on the dark theme */
+.leaflet-control-layers,
+.leaflet-control-zoom a,
+.leaflet-control-attribution {
   background: var(--surface-1); color: var(--text-primary);
 }
-:root[data-theme="dark"] .leaflet-control-attribution a { color: var(--accent); }
+.leaflet-control-attribution a { color: var(--accent); }
 
 /* ---------- footer ---------- */
 .site-footer {

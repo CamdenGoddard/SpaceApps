@@ -1,5 +1,5 @@
 /* ============================================================
-   TrendScope — SVG chart renderer
+   TrendScope: SVG chart renderer
    Annual time series + Sen's trend line, with crosshair hover
    tooltip. Colors come from CSS custom properties so light and
    dark mode swap in one place.
@@ -37,7 +37,7 @@ const TrendChart = (() => {
   }
 
   function fmt(v, decimals = 2) {
-    if (!isFinite(v)) return '–';
+    if (!isFinite(v)) return '-';
     const a = Math.abs(v);
     if (a !== 0 && (a < 0.001 || a >= 100000)) return v.toExponential(1);
     return (+v.toFixed(decimals)).toLocaleString('en-US', { maximumFractionDigits: decimals });
@@ -71,7 +71,7 @@ const TrendChart = (() => {
       viewBox: `0 0 ${W} ${H}`,
       class: 'trend-chart',
       role: 'img',
-      'aria-label': `Annual time series ${x0}–${x1} with trend line`
+      'aria-label': `Annual time series ${x0}-${x1} with trend line`
     });
     container.appendChild(svg);
 

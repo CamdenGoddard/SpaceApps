@@ -1,16 +1,37 @@
 /* ============================================================
-   TrendScope — NASA POWER API client + variable catalog
+   TrendScope: NASA POWER API client + variable catalog
    Data: NASA POWER (Prediction Of Worldwide Energy Resources)
-   https://power.larc.nasa.gov/ — satellite + model (MERRA-2 /
-   CERES / FLASHFlux) derived climate variables, 1981–present,
+   https://power.larc.nasa.gov/ : satellite + model (MERRA-2 /
+   CERES / FLASHFlux) derived climate variables, 1981 to present,
    for any point on Earth. Free, no API key, CORS-enabled.
    ============================================================ */
 
 const PowerAPI = (() => {
 
-  const BASE = 'https://power.larc.nasa.gov/api/temporal';
+  const POWER_HOST = 'https://power.larc.nasa.gov';
+  /* The POWER API does not send CORS headers, so browsers can't call it
+     directly. RELAY is a Cloudflare Worker that forwards GET requests to
+     power.larc.nasa.gov unchanged and adds Access-Control-Allow-Origin. */
+  const RELAY = '';
   const COMMUNITY = 'AG';
   const END_YEAR = new Date().getUTCFullYear() - 1; // last complete year
+
+  /* Try the relay first (when configured), then the API directly. A host
+     only falls through on a network/CORS failure; any real HTTP response
+     is treated as authoritative. */
+  async function getResponse(path, signal) {
+    const hosts = RELAY ? [RELAY, POWER_HOST] : [POWER_HOST];
+    let lastErr;
+    for (const host of hosts) {
+      try {
+        return await fetch(host + path, { signal });
+      } catch (err) {
+        if (err.name === 'AbortError') throw err;
+        lastErr = err;
+      }
+    }
+    throw new Error('Could not reach the NASA POWER API (' + (lastErr?.message || 'network error') + ').');
+  }
 
   /* Variable catalog.
      startYear: solar-radiation variables begin in 1984 (CERES/SRB era);
@@ -19,17 +40,17 @@ const PowerAPI = (() => {
     {
       id: 'T2M', name: 'Air temperature (2 m)', units: '°C', startYear: 1981,
       group: 'Temperature', decimals: 2,
-      blurb: 'Average air temperature at 2 meters — the classic climate-change variable.'
+      blurb: 'Average air temperature at 2 meters, the classic climate-change variable.'
     },
     {
       id: 'T2M_MAX', name: 'Max daily temperature', units: '°C', startYear: 1981,
       group: 'Temperature', decimals: 2,
-      blurb: 'Annual mean of daily maximum temperature — tracks heat extremes.'
+      blurb: 'Annual mean of daily maximum temperature. Tracks heat extremes.'
     },
     {
       id: 'T2M_MIN', name: 'Min daily temperature', units: '°C', startYear: 1981,
       group: 'Temperature', decimals: 2,
-      blurb: 'Annual mean of daily minimum temperature — nights often warm faster than days.'
+      blurb: 'Annual mean of daily minimum temperature. Nights often warm faster than days.'
     },
     {
       id: 'TS', name: 'Earth skin temperature', units: '°C', startYear: 1981,
@@ -39,7 +60,7 @@ const PowerAPI = (() => {
     {
       id: 'PRECTOTCORR', name: 'Precipitation', units: 'mm/day', startYear: 1981,
       group: 'Water', decimals: 3,
-      blurb: 'Bias-corrected total precipitation — the same warming world is getting wetter in some regions and drier in others.'
+      blurb: 'Bias-corrected total precipitation. The same warming world is getting wetter in some regions and drier in others.'
     },
     {
       id: 'RH2M', name: 'Relative humidity (2 m)', units: '%', startYear: 1981,
@@ -49,27 +70,27 @@ const PowerAPI = (() => {
     {
       id: 'QV2M', name: 'Specific humidity (2 m)', units: 'g/kg', startYear: 1981,
       group: 'Water', decimals: 3,
-      blurb: 'Actual water-vapor content of the air — rises as oceans warm.'
+      blurb: 'Actual water-vapor content of the air. It rises as oceans warm.'
     },
     {
-      id: 'GWETROOT', name: 'Root-zone soil wetness', units: '0–1', startYear: 1981,
+      id: 'GWETROOT', name: 'Root-zone soil wetness', units: '0-1', startYear: 1981,
       group: 'Water', decimals: 3,
-      blurb: 'Soil moisture available to plants (0 = bone dry, 1 = saturated) — a drought indicator.'
+      blurb: 'Soil moisture available to plants (0 = bone dry, 1 = saturated). A drought indicator.'
     },
     {
       id: 'ALLSKY_SFC_SW_DWN', name: 'Solar irradiance (all-sky)', units: 'kWh/m²/day', startYear: 1984,
       group: 'Energy', decimals: 3,
-      blurb: 'Sunlight reaching the surface — changes with clouds and aerosol pollution ("global dimming / brightening").'
+      blurb: 'Sunlight reaching the surface. Changes with clouds and aerosol pollution ("global dimming / brightening").'
     },
     {
       id: 'WS10M', name: 'Wind speed (10 m)', units: 'm/s', startYear: 1981,
       group: 'Energy', decimals: 3,
-      blurb: 'Near-surface wind — relevant to wind power and "global terrestrial stilling".'
+      blurb: 'Near-surface wind. Relevant to wind power and "global terrestrial stilling".'
     },
     {
       id: 'PS', name: 'Surface pressure', units: 'kPa', startYear: 1981,
       group: 'Energy', decimals: 3,
-      blurb: 'Atmospheric pressure at the surface — shifts with circulation changes.'
+      blurb: 'Atmospheric pressure at the surface. Shifts with circulation changes.'
     }
   ];
 
@@ -130,14 +151,14 @@ const PowerAPI = (() => {
       end: String(END_YEAR),
       format: 'JSON'
     });
-    const url = `${BASE}/annual/point?${params}`;
-    const res = await fetch(url, { signal });
+    const path = `/api/temporal/annual/point?${params}`;
+    const res = await getResponse(path, signal);
     if (!res.ok) {
       let msg = `NASA POWER returned ${res.status}`;
       try {
         const body = await res.json();
         const detail = body?.messages?.join('; ') || body?.message || body?.detail;
-        if (detail) msg += ` — ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`;
+        if (detail) msg += `: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`;
       } catch (_) { /* ignore */ }
       throw new Error(msg);
     }
@@ -159,7 +180,7 @@ const PowerAPI = (() => {
   }
 
   /**
-   * Fetch a grid of trend analyses around a center point — answers
+   * Fetch a grid of trend analyses around a center point. Answers
    * "WHERE is it changing?". gridSize x gridSize points, spaced
    * stepDeg apart. Runs with limited concurrency to be polite to
    * the API. onProgress(done, total) is called as cells finish.

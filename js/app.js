@@ -1,5 +1,5 @@
 /* ============================================================
-   TrendScope — application wiring
+   TrendScope: application wiring
    Map, variable picker, single/compare modes, verdict panel,
    and the "where is it changing?" regional grid scan.
    ============================================================ */
@@ -48,7 +48,7 @@
     },
     {
       title: 'Drying soils of the Southwest',
-      desc: 'Root-zone soil moisture — the water plants actually use — tells the megadrought story.',
+      desc: 'Root-zone soil moisture, the water plants actually use, tells the megadrought story.',
       variable: 'GWETROOT',
       a: { lat: 34.05, lon: -111.09, label: 'Central Arizona, USA' },
       b: { lat: 40.42, lon: -82.91, label: 'Ohio, USA' }
@@ -71,7 +71,7 @@
     attribution: '&copy; OpenStreetMap contributors', maxZoom: 12
   });
   const labels = L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png',
+    'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png',
     { attribution: '&copy; CARTO', maxZoom: 12, pane: 'shadowPane' }
   );
   blueMarble.addTo(map);
@@ -223,7 +223,7 @@
     const active = slots.filter(s => state.locations[s]);
     if (active.length === 0) {
       resultsEl.innerHTML = `<div class="placeholder">
-        <p><strong>Click anywhere on the map</strong> to pull four decades of NASA data for that spot — or load one of the comparison stories on the left.</p>
+        <p><strong>Click anywhere on the map</strong> to pull four decades of NASA data for that spot, or load one of the comparison stories on the left.</p>
       </div>`;
       return;
     }
@@ -283,8 +283,8 @@
     const d = v.decimals;
 
     const sigBadge = trend.significant
-      ? `<span class="sig-badge sig-yes" title="Mann–Kendall test">✓ Statistically significant (${pFmt(trend.mk.p)}, below α = 0.05)</span>`
-      : `<span class="sig-badge sig-no" title="Mann–Kendall test">○ Not statistically significant (${pFmt(trend.mk.p)}, above α = 0.05)</span>`;
+      ? `<span class="sig-badge sig-yes" title="Mann-Kendall test">✓ Statistically significant (${pFmt(trend.mk.p)}, below α = 0.05)</span>`
+      : `<span class="sig-badge sig-no" title="Mann-Kendall test">○ Not statistically significant (${pFmt(trend.mk.p)}, above α = 0.05)</span>`;
 
     return `
       <article class="verdict-card">
@@ -292,7 +292,7 @@
           ${letter ? `<span class="slot-dot slot-dot-${slot}">${letter}</span>` : ''}
           <div>
             <h3>${escapeHtml(locationLabel(loc))}</h3>
-            <p class="card-sub">${escapeHtml(series.longname)} · ${series.years[0]}–${series.years[series.years.length - 1]} · ${trend.n} yearly values</p>
+            <p class="card-sub">${escapeHtml(series.longname)} · ${series.years[0]}-${series.years[series.years.length - 1]} · ${trend.n} yearly values</p>
           </div>
         </header>
         <div class="verdict-line ${dirClass}">
@@ -303,7 +303,7 @@
         <dl class="stats-grid">
           <div><dt>Sen's slope (rate)</dt><dd>${sign}${TrendChart.fmt(absSlope, d)} ${series.units}/decade</dd></div>
           <div><dt>Change over ${trend.span} yrs</dt><dd>${sign}${TrendChart.fmt(absTotal, d)} ${series.units}${isFinite(trend.pctChange) ? ` (${sign}${TrendChart.fmt(Math.abs(trend.pctChange), 1)}%)` : ''}</dd></div>
-          <div><dt>Mann–Kendall</dt><dd>Z = ${TrendChart.fmt(trend.mk.Z, 2)}, ${pFmt(trend.mk.p)}</dd></div>
+          <div><dt>Mann-Kendall</dt><dd>Z = ${TrendChart.fmt(trend.mk.Z, 2)}, ${pFmt(trend.mk.p)}</dd></div>
           <div><dt>Linear regression</dt><dd>slope ${trend.ols.slope >= 0 ? '+' : '−'}${TrendChart.fmt(Math.abs(trend.ols.slope * 10), d)}/decade, ${pFmt(trend.ols.p)}, r² = ${TrendChart.fmt(trend.ols.r2, 2)}</dd></div>
         </dl>
         <div class="sig-row">${sigBadge}</div>
@@ -318,7 +318,7 @@
       html += compareSummary();
     }
     html += `<div class="scan-cta">
-      <button id="grid-btn" class="btn-secondary">🗺 Scan the surrounding region — <em>where</em> is it changing?</button>
+      <button id="grid-btn" class="btn-secondary">🗺 Scan the surrounding region: <em>where</em> is it changing?</button>
       <span id="grid-status"></span>
     </div>`;
     resultsEl.innerHTML = html;
@@ -348,19 +348,19 @@
     const v = PowerAPI.getVariable(state.variable);
     let story;
     if (a.significant && b.significant && Math.sign(a.sen.slope) !== Math.sign(b.sen.slope)) {
-      story = `<strong>Opposite significant trends.</strong> The same variable, driven by the same global system, is moving in <em>opposite directions</em> at these two places — exactly the regional divergence this challenge is about.`;
+      story = `<strong>Opposite significant trends.</strong> The same variable, driven by the same global system, is moving in <em>opposite directions</em> at these two places. This is exactly the regional divergence this challenge is about.`;
     } else if (a.significant && b.significant) {
       const faster = Math.abs(a.slopePerDecade) >= Math.abs(b.slopePerDecade) ? 'A' : 'B';
       const ratio = Math.abs(a.slopePerDecade) && Math.abs(b.slopePerDecade)
         ? (Math.max(Math.abs(a.slopePerDecade), Math.abs(b.slopePerDecade)) / Math.min(Math.abs(a.slopePerDecade), Math.abs(b.slopePerDecade)))
         : null;
-      story = `<strong>Both trends are significant, in the same direction</strong> — but location ${faster} is changing ${ratio && isFinite(ratio) ? TrendChart.fmt(ratio, 1) + '× ' : ''}faster.`;
+      story = `<strong>Both trends are significant, in the same direction</strong>, but location ${faster} is changing ${ratio && isFinite(ratio) ? TrendChart.fmt(ratio, 1) + '× ' : ''}faster.`;
     } else if (a.significant !== b.significant) {
       const which = a.significant ? 'A' : 'B';
       const other = a.significant ? 'B' : 'A';
       story = `<strong>Significant at ${which}, not at ${other}.</strong> Change can be unambiguous in one region while still indistinguishable from year-to-year noise in another.`;
     } else {
-      story = `<strong>No significant trend at either location</strong> for ${escapeHtml(v.name)} — natural variability dominates here. Try temperature, or another region.`;
+      story = `<strong>No significant trend at either location</strong> for ${escapeHtml(v.name)}. Natural variability dominates here. Try temperature, or another region.`;
     }
     return `<div class="compare-summary">${story}</div>`;
   }
@@ -418,7 +418,7 @@
       }
       state.gridLayer.addTo(map);
       addGridLegend(v, maxAbs);
-      gs.textContent = `Done — ${ok.length} points. Filled = significant trend, hollow = not.`;
+      gs.textContent = `Done: ${ok.length} points. Filled = significant trend, hollow = not.`;
     } catch (err) {
       if (err.name !== 'AbortError') gs.textContent = 'Scan failed: ' + err.message;
     }
@@ -451,22 +451,6 @@
     statusEl.textContent = msg;
     statusEl.className = 'status ' + (kind || '');
   }
-
-  /* ---------- theme toggle ---------- */
-  const themeBtn = $('#theme-toggle');
-  function applyTheme(t) {
-    document.documentElement.dataset.theme = t;
-    themeBtn.textContent = t === 'dark' ? '☀' : '☾';
-    try { localStorage.setItem('trendscope-theme', t); } catch (_) {}
-  }
-  themeBtn.addEventListener('click', () => {
-    applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
-  });
-  (function initTheme() {
-    let saved = null;
-    try { saved = localStorage.getItem('trendscope-theme'); } catch (_) {}
-    applyTheme(saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
-  })();
 
   updateSlotChips();
   runAnalysis();

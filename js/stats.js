@@ -1,10 +1,10 @@
 /* ============================================================
-   TrendScope — statistics engine
+   TrendScope: statistics engine
    Trend detection on annual time series:
      - Ordinary least squares (OLS) linear regression with
        t-distribution p-value
      - Mann-Kendall non-parametric trend test (tie-corrected)
-     - Sen's slope (Theil–Sen median slope) + intercept
+     - Sen's slope (Theil-Sen median slope) + intercept
    These are the standard tools climate scientists use to decide
    whether a trend is "statistically significant".
    ============================================================ */
@@ -149,7 +149,7 @@ const TrendStats = (() => {
     return { S, variance, Z, p, n };
   }
 
-  /* ---------- Sen's slope (Theil–Sen estimator) ---------- */
+  /* ---------- Sen's slope (Theil-Sen estimator) ---------- */
 
   function sensSlope(x, y) {
     const n = x.length;
