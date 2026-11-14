@@ -174,9 +174,10 @@ const PowerAPI = (() => {
       throw new Error('Too few valid data points at this location (' + years.length + ').');
     }
     const meta = data?.parameters?.[varId] || {};
+    const prettyUnits = u => ({ 'C': '°C', 'MJ/m^2/day': 'MJ/m²/day', 'm/s': 'm/s' }[u] || u);
     return {
       years, values,
-      units: meta.units || v.units,
+      units: prettyUnits(meta.units || v.units),
       longname: meta.longname || v.name,
       lat, lon
     };
