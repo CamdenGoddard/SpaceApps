@@ -452,7 +452,7 @@
       <strong>${escapeHtml(v.name)} trend</strong>
       <div class="legend-ramp"></div>
       <div class="legend-ends"><span>−${TrendChart.fmt(maxAbs, v.decimals)}</span><span>0</span><span>+${TrendChart.fmt(maxAbs, v.decimals)}</span></div>
-      <span class="legend-note">${escapeHtml(v.units)}/decade · filled = significant (p &lt; 0.05)</span>`;
+      <span class="legend-note">${escapeHtml(v.units)}/decade, filled = significant (p &lt; 0.05)</span>`;
     document.getElementById('map').appendChild(div);
   }
 
