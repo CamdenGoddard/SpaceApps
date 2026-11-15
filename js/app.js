@@ -157,7 +157,7 @@
     map.on('load', () => { earthView = EarthView.mount(map, info => {
       $('#utc-clock').textContent = info.time.toISOString().replace('T',' ').slice(0,19)+' UTC';
       $('.data-badge').lastChild.textContent=info.live?' UTC LIGHTING ACTIVE':' HISTORICAL PREVIEW';
-      document.getElementById('earth-status').textContent = `${info.live?'LIVE UTC':'HISTORICAL LIGHTING'} · ${info.time.toISOString().replace('T',' ').slice(0,19)} · ${info.night} · ${info.live?info.cloud:'Clouds hidden during historical playback'}`;
+      document.getElementById('earth-status').textContent = `${info.live?'LIVE UTC':'HISTORICAL LIGHTING'} · ${info.time.toISOString().replace('T',' ').slice(0,19)} · ${info.night}`;
       $('#earth-status').title=$('#earth-status').textContent;
     });
       Dashboard.mount({map,earthView,selectLocation,selectedLocation:state.locations[0],onHistoryYear:year=>{state.historyYear=year;clearGrid();runAnalysis();}});
@@ -205,7 +205,7 @@
     $('#map-hint').classList.add('hidden');
     $('#globe-home').disabled = true;
     $('#basemap').disabled = true;
-    document.querySelectorAll('[data-earth-mode], #clouds-toggle, #search-form button, #location-search, #history-year, #live-earth').forEach(el=>el.disabled=true);
+    document.querySelectorAll('[data-earth-mode], #search-form button, #location-search, #history-year, #live-earth').forEach(el=>el.disabled=true);
     $('#search-results').textContent='Globe tools unavailable. Coordinate climate analysis still works.';
     reportMapError('The globe could not start. It requires MapLibre and WebGL. You can still analyze coordinates below.');
   }

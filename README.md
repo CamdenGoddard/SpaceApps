@@ -124,16 +124,9 @@ still runs the NASA POWER climate analysis.
   an approximate astronomical illumination model, not a live satellite image.
   Blue Marble supplies the historical daytime texture. City lights use the
   NASA VIIRS **2012** composite, restricted to the calculated nighttime side.
-- **Satellite clouds:** Optional, downloaded on demand. NASA MODIS Terra
-  daytime cloud fraction from the previous UTC day, decoded with NASA's
-  published color map into white opacity. Coverage gaps remain empty; this
-  is cloud-fraction shading, not a seamless photorealistic live cloud layer.
-  An unavailable date or resource is reported without fabricated imagery.
-- **Wind, Weather, Temperature, Humidity, Solar radiation:** Open-Meteo
-  weather-model estimates. Weather maps precipitation; a selected point also
-  shows temperature, humidity, clouds, WMO weather condition, wind, and solar
-  radiation. Solar radiation is an interval mean. All valid timestamps and
-  returned accumulation intervals are displayed.
+- **Wind, Humidity, Solar radiation:** Open-Meteo forecast-model
+  estimates. Selected points show temperature, humidity, wind and solar radiation.
+  Solar radiation is an interval mean; units and valid timestamps are displayed.
 - **Air pollution:** CAMS PM2.5 model estimates through Open-Meteo; not a
   street-level air-quality monitor or a health advisory.
 - Environmental overviews use **288 real samples on a 15-degree grid**.
@@ -144,9 +137,18 @@ still runs the NASA POWER climate analysis.
   accelerated and zoom-scaled for visibility through the static valid-time
   field. These are visualized trajectories, not future parcel forecasts.
 - Models are fetched lazily, in batches with two requests at a time, cached
-  for 15 minutes in memory and up to 30 minutes across reloads, and never silently substituted with made-up numbers.
+  for 15 minutes in memory and up to 30 minutes across reloads within the same UTC valid hour, and never silently substituted with made-up numbers.
   Loading, partial coverage, valid time, and unavailable states are explicit.
-  Their valid times are distinct from the current UTC lighting clock.
+  Every global batch requests the same explicit UTC hour using hourly data;
+  temperature is explicitly Celsius and nearest grid-cell selection prevents
+  default land preference shifting ocean samples. Returned coordinates, valid
+  times, units and physical humidity/pollution limits are validated. Invalid
+  samples stay unfilled. Their valid times differ from the UTC lighting clock.
+- Mode changes cancel pending render jobs, discard the previous tiles, and fade
+  in the new source after it finishes loading. A failed source leaves the globe
+  unshaded with an unavailable message. PNG generation remains in a worker.
+- Weather mode, precipitation/condition summaries and Satellite Clouds have
+  been removed, including the MODIS palette and download/compositing code.
 - Search uses local Natural Earth country label positions and Open-Meteo /
   GeoNames city geocoding. Country selection goes to a label point, not an
   assertion that a country has a single representative climate.
@@ -154,7 +156,7 @@ still runs the NASA POWER climate analysis.
   annual record through the chosen year and recalculates Mann-Kendall,
   Sen's slope, and OLS using the existing statistics engine. It does not
   invent past global weather maps. Current model overlays and measurements
-  are hidden; cloud observations are disabled. Lighting previews July 1,
+  are hidden. Lighting previews July 1,
   12:00 UTC of that year, with the static basemap/2012 light texture clearly
   disclosed. **Live Earth** restores today's lighting and the full climate
   record. Full-record regional scans are disabled while a historical cutoff
@@ -186,7 +188,7 @@ unsupported overzoom; it cannot provide street-level or building detail. Mercato
   measurement cards, and existing chart styles.
 - `js/app.js`: existing analysis wiring, map hooks, annual cutoff and record cache.
 - `js/solar.js`: UTC solar coordinates and altitude calculations.
-- `js/earth.js`: lighting compositor, NASA night imagery, optional decoded clouds.
+- `js/earth.js`: lighting compositor and native NASA night imagery.
 - `js/environment-data.js`: API access, batching, null handling, caches, search.
 - `js/environment-layers.js`: mode transitions and interpolated raster tile orchestration.
 - `js/field-grid.js`: bilinear scalar/vector interpolation, missing-data rules, geographic advection.
@@ -194,7 +196,6 @@ unsupported overzoom; it cannot provide street-level or building detail. Mercato
 - `js/wind-particles.js`: custom MapLibre/WebGL globe-aligned, adaptive particle trails.
 - `js/dashboard.js`: mode controls, point measurements, search and timeline UI.
 - `data/countries.json`: derived Natural Earth country label locations.
-- `data/cloud-palette.json`: NASA MODIS cloud fraction color map entries.
 - `tests/solar.test.js`, `tests/data.test.js`: offline regression checks.
 
 `js/stats.js`, `js/power.js`, and `js/chart.js` are unchanged.
@@ -202,9 +203,8 @@ unsupported overzoom; it cannot provide street-level or building detail. Mercato
 ### Source and usage information
 
 - [NASA GIBS access and usage](https://nasa-gibs.github.io/gibs-api-docs/):
-  BlueMarble_ShadedRelief_Bathymetry, VIIRS_CityLights_2012,
-  MODIS_Terra_Cloud_Fraction_Day. Acknowledge NASA GIBS / ESDIS.
-- [NASA cloud fraction color map](https://gibs.earthdata.nasa.gov/colormaps/v1.3/MODIS_Cloud_Fraction.xml).
+  BlueMarble_ShadedRelief_Bathymetry and VIIRS_CityLights_2012.
+  Acknowledge NASA GIBS / ESDIS.
 - [Open-Meteo weather API](https://open-meteo.com/en/docs) and
   [air quality API](https://open-meteo.com/en/docs/air-quality-api): model data
   CC BY 4.0; free hosted endpoints are for **non-commercial** use, subject to
@@ -223,14 +223,16 @@ unsupported overzoom; it cannot provide street-level or building detail. Mercato
 Solar tests check equinox and solstice declination, subsolar daylight, and
 antipodal night. Data tests verify valid zero vs missing values, UTC valid time,
 point caching, provider failures, no synthesized fallback grids, color scales,
-and WMO conditions. On macOS, run from the project root:
+unit/range validation, same-hour bulk requests, and asynchronous layer cleanup. On macOS, run from the project root:
 
 ```sh
 /System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc tests/solar.test.js tests/data.test.js tests/field-grid.test.js
+/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc tests/data-grid.test.js
+/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc tests/layer-lifecycle.test.js
 ```
 
 Browser checks cover real global weather and CAMS responses, search, point
-measurements, historical cutoff/live reset, comparison records, cloud loading,
+measurements, historical cutoff/live reset, comparison records,
 regional scan, and desktop/mobile layouts. Public services can fail or change;
 the app reports unavailable data rather than replacing it with a simulation.
 
@@ -278,3 +280,7 @@ opposing-vector cancellation, and geographic particle advection. Existing
 Mann-Kendall, Sen's slope, POWER retrieval, and SVG chart files are unchanged.
 
 Environmental PNG tiles are also cached (96 entries), so returning to an unchanged mode reuses encoded textures. New tiles warm nearly transparently before fading in, avoiding flashes of the previous field. Wind is at 10 m above the surface; it is not the 250 hPa jet-stream product shown in the Nullschool reference.
+
+The Temperature visualization mode and dashboard navigation shortcuts were removed.
+Visualization buttons use text only. NASA POWER temperature trend analysis and
+point temperature readings remain available.
