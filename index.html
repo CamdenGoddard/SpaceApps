@@ -17,7 +17,7 @@
 
   <header class="site-header">
     <h1>TrendScope</h1>
-    <p class="tagline">Click a spot on Earth. See 40+ years of NASA data. Find out what's changing, how fast, and whether it's statistically significant.</p>
+    <p class="tagline">40 years of NASA data, for any spot on Earth.</p>
     <span id="status" class="status"></span>
   </header>
 
@@ -26,7 +26,6 @@
     <aside class="panel">
       <h2>Variable</h2>
       <select id="var-select" aria-label="Earth science variable"></select>
-      <p id="var-blurb"></p>
 
       <h2>Mode</h2>
       <div class="mode-toggle">
@@ -41,24 +40,21 @@
       <h2>Comparison stories</h2>
       <div id="presets"></div>
 
-      <h2>What does "significant" mean?</h2>
-      <div class="how-note">
-        <p>Yearly climate data is noisy: any patch of years can drift up or down by chance. A trend is called <strong>statistically significant</strong> when it's too consistent to plausibly be luck.</p>
-        <p>TrendScope runs the <strong>Mann-Kendall test</strong>, the standard trend test in climate science. It checks whether later years are consistently higher (or lower) than earlier ones, and computes a <em>p-value</em>: the probability of seeing a trend this strong in pure noise. Below 0.05 (a 1-in-20 fluke), scientists call it significant.</p>
-        <p>The rate of change is estimated with <strong>Sen's slope</strong> (the median of all pairwise slopes, robust to outlier years), cross-checked by ordinary linear regression.</p>
-      </div>
+      <details class="how-note">
+        <summary>How "significant" is decided</summary>
+        <p>Climate data is noisy, so a run of rising years can be luck. The <strong>Mann-Kendall test</strong> gives the probability (p-value) that a trend this consistent is pure noise. Below 0.05, scientists call it significant.</p>
+        <p>The rate comes from <strong>Sen's slope</strong>, robust to outlier years, cross-checked by linear regression.</p>
+      </details>
     </aside>
 
-    <section id="map" aria-label="World map. Click to select a location"><div id="map-hint">Click anywhere on Earth to analyze it</div></section>
+    <section id="map" aria-label="World map. Click to select a location"><div id="map-hint">Click anywhere to analyze</div></section>
 
     <section class="results-pane" id="results" aria-live="polite"></section>
 
   </main>
 
   <footer class="site-footer">
-    Data from <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">NASA POWER</a> (MERRA-2 and CERES derived, 1981 to present), on a <a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener">NASA GIBS Blue Marble</a> basemap.
-    All statistics (Mann-Kendall test, Sen's slope, OLS regression) run live in your browser.
-    Built for the NASA Space Apps Challenge.
+    Data from <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">NASA POWER</a>, basemap from <a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener">NASA GIBS</a>. Built for the NASA Space Apps Challenge.
   </footer>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"

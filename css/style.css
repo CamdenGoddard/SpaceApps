@@ -161,11 +161,6 @@ select {
   font-size: 0.9rem;
 }
 select:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
-#var-blurb {
-  font-size: 0.82rem;
-  color: var(--ink-2);
-  margin: 9px 0 0;
-}
 
 .mode-toggle {
   display: flex;
@@ -237,7 +232,7 @@ select:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
   display: block;
   width: 100%;
   text-align: left;
-  padding: 11px 2px 11px 12px;
+  padding: 9px 2px 9px 12px;
   border: 0;
   border-left: 2px solid var(--line);
   background: none;
@@ -259,8 +254,19 @@ select:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
   color: var(--ink-2);
   border-top: 1px solid var(--line);
   padding-top: 12px;
+  margin-top: 24px;
 }
-.how-note p { margin: 0 0 8px; }
+.how-note summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 0.88rem;
+  color: var(--ink-2);
+  list-style-position: outside;
+}
+.how-note summary:hover { color: var(--ink); }
+.how-note summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.how-note p { margin: 9px 0 0; }
 .how-note strong { color: var(--ink); font-weight: 600; }
 
 /* ---------- results ---------- */
