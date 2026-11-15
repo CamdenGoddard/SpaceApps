@@ -294,11 +294,11 @@
 
   varSelect.addEventListener('change', () => {
     state.variable = varSelect.value;
-    const v = PowerAPI.getVariable(state.variable);
-    $('#var-blurb').textContent = v.blurb;
+    $('#var-blurb').textContent = PowerAPI.getVariable(state.variable).blurb;
     clearGrid();
     runAnalysis();
   });
+
   $('#var-blurb').textContent = PowerAPI.getVariable(state.variable).blurb;
 
   /* ---------- UI: mode toggle & slot chips ---------- */
@@ -342,7 +342,8 @@
   PRESETS.forEach(p => {
     const btn = document.createElement('button');
     btn.className = 'preset-btn';
-    btn.innerHTML = `<strong>${p.title}</strong><span>${p.desc}</span>`;
+    btn.title = p.desc;
+    btn.innerHTML = `<strong>${p.title}</strong>`;
     btn.addEventListener('click', () => loadPreset(p));
     presetsEl.appendChild(btn);
   });
@@ -373,15 +374,15 @@
     const active = slots.filter(s => state.locations[s]);
     if (active.length === 0) {
       resultsEl.innerHTML = `<div class="placeholder">
-        <p><strong>A planet of changing signals.</strong></p><p>Select a location to see the annual record, trend rate, and statistical confidence. Or explore a comparison story.</p>
+        <p><strong>Click anywhere on the map</strong>, or try a comparison story.</p>
       </div>`;
       return;
     }
     const ctrl = new AbortController();
     state.fetchAbort = ctrl;
     const v = PowerAPI.getVariable(state.variable);
-    setStatus(`Fetching ${v.name} from NASA POWER…`, 'busy');
-    resultsEl.innerHTML = `<div class="placeholder"><div class="spinner"></div><p>Contacting NASA POWER for ${active.length === 2 ? 'two locations' : escapeHtml(locationLabel(state.locations[active[0]]))}…</p></div>`;
+    setStatus(`Fetching ${v.name}…`, 'busy');
+    resultsEl.innerHTML = `<div class="placeholder"><div class="spinner"></div><p>Fetching 40+ years of NASA data…</p></div>`;
 
     try {
       await Promise.all(active.map(async slot => {
@@ -403,7 +404,7 @@
     } catch (err) {
       if (err.name === 'AbortError') return;
       setStatus('', 'idle');
-      resultsEl.innerHTML = `<div class="placeholder error"><p><strong>Could not fetch data.</strong> ${escapeHtml(err.message)}</p><p class="hint">Points over open ocean work for most variables; soil moisture needs land. Try another spot or variable.</p></div>`;
+      resultsEl.innerHTML = `<div class="placeholder error"><p><strong>Could not fetch data.</strong> ${escapeHtml(err.message)}</p><p class="hint">Try another spot or variable. Soil moisture needs land.</p></div>`;
     }
   }
 
@@ -451,8 +452,8 @@
     const d = v.decimals;
 
     const sigLine = trend.significant
-      ? `<p class="sig-line sig-yes"><strong>Statistically significant.</strong> The odds a trend this consistent is random noise: ${oddsPhrase(trend.mk.p)} (Mann-Kendall ${pFmt(trend.mk.p)}).</p>`
-      : `<p class="sig-line sig-no"><strong>Not statistically significant.</strong> Random year-to-year noise produces a pattern this weak ${oddsPhrase(trend.mk.p)} of the time (Mann-Kendall ${pFmt(trend.mk.p)}).</p>`;
+      ? `<p class="sig-line sig-yes"><strong>Significant.</strong> Odds this is just noise: ${oddsPhrase(trend.mk.p)}.</p>`
+      : `<p class="sig-line sig-no"><strong>Not significant.</strong> Plain noise looks like this ${oddsPhrase(trend.mk.p)} of the time.</p>`;
 
     return `
       <article class="verdict-card">
@@ -460,7 +461,7 @@
           ${letter ? `<span class="slot-dot slot-dot-${slot}">${letter}</span>` : ''}
           <div>
             <h3>${escapeHtml(locationLabel(loc))}</h3>
-            <p class="card-sub">${escapeHtml(series.longname)}, ${series.years[0]} to ${series.years[series.years.length - 1]}, ${trend.n} yearly values</p>
+            <p class="card-sub">${escapeHtml(series.longname)}, ${series.years[0]} to ${series.years[series.years.length - 1]}</p>
           </div>
         </header>
         <p class="verdict-dir ${dirClass}">${arrow} ${dir}</p>
@@ -580,7 +581,7 @@
         'circle-stroke-color': ['get', 'color'], 'circle-stroke-width': 2
       } });
       addGridLegend(v, maxAbs);
-      gs.textContent = `Done: ${ok.length} points. Filled = significant trend, hollow = not.`;
+      gs.textContent = `${ok.length} points mapped. Filled = significant.`;
     } catch (err) {
       if (err.name !== 'AbortError') gs.textContent = 'Scan failed: ' + err.message;
     }
@@ -615,7 +616,7 @@
       <strong>${escapeHtml(v.name)} trend</strong>
       <div class="legend-ramp"></div>
       <div class="legend-ends"><span>−${TrendChart.fmt(maxAbs, v.decimals)}</span><span>0</span><span>+${TrendChart.fmt(maxAbs, v.decimals)}</span></div>
-      <span class="legend-note">${escapeHtml(v.units)}/decade · filled = significant (p &lt; 0.05)</span>`;
+      <span class="legend-note">${escapeHtml(v.units)}/decade, filled = significant (p &lt; 0.05)</span>`;
     document.getElementById('map').appendChild(div);
   }
 
