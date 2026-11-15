@@ -106,7 +106,7 @@ const PowerAPI = (() => {
     const monthly = new Map();  // year -> [values]
 
     for (const [key, val] of Object.entries(raw)) {
-      if (typeof val !== 'number') continue;
+      if (typeof val !== 'number' || !Number.isFinite(val)) continue;
       if (val === fillValue || val <= -900) continue;
       if (/^\d{4}$/.test(key)) {
         annual.set(+key, val);
@@ -152,8 +152,7 @@ const PowerAPI = (() => {
       format: 'JSON'
     });
     /* The monthly endpoint includes annual means keyed as month "13";
-       parseSeries extracts them (the annual endpoint was removed from
-       the POWER API). */
+       parseSeries extracts them without requiring a separate annual request. */
     const path = `/api/temporal/monthly/point?${params}`;
     const res = await getResponse(path, signal);
     if (!res.ok) {
@@ -170,9 +169,7 @@ const PowerAPI = (() => {
     if (!paramObj) throw new Error('No data returned for this location/variable.');
     const fill = data?.header?.fill_value ?? -999;
     const { years, values } = parseSeries(paramObj, fill);
-    if (years.length < 10) {
-      throw new Error('Too few valid data points at this location (' + years.length + ').');
-    }
+    if (!years.length) throw new Error('No valid annual NASA POWER data available for this location/variable.');
     const meta = data?.parameters?.[varId] || {};
     const prettyUnits = u => ({ 'C': '°C', 'MJ/m^2/day': 'MJ/m²/day', 'm/s': 'm/s' }[u] || u);
     return {
@@ -181,6 +178,25 @@ const PowerAPI = (() => {
       longname: meta.longname || v.name,
       lat, lon
     };
+  }
+
+  // Coverage and sample-count limits are different: a short record is data,
+  // even when it cannot support the dashboard's ten-value trend policy.
+  function historyRecord(full, varId, throughYear=null) {
+    const variable=getVariable(varId);
+    const indices=full.years.map((year,i)=>i).filter(i=>throughYear===null||full.years[i]<=throughYear);
+    const series={...full,years:indices.map(i=>full.years[i]),values:indices.map(i=>full.values[i])};
+    const count=series.years.length;
+    let message='';
+    if(!count) {
+      message=`No annual NASA POWER data available${throughYear===null?'':` through ${throughYear}`} for ${variable.name} at this location. `+
+        (throughYear!==null&&throughYear<variable.startYear?`This parameter starts in ${variable.startYear}.`:
+        `The first returned annual value is ${full.years[0] ?? 'unavailable'}.`);
+    } else {
+      if(throughYear!==null&&!series.years.includes(throughYear))message=`No annual value available for ${throughYear}; the chart ends at the last available year, ${series.years.at(-1)}. `;
+      if(count<10)message+=`${count} valid annual value${count===1?'':'s'} available. Not enough data for trend analysis. At least 10 annual observations required.`;
+    }
+    return {series,canAnalyze:count>=10,message};
   }
 
   /**
@@ -213,6 +229,7 @@ const PowerAPI = (() => {
         const cell = cells[myIdx];
         try {
           const series = await fetchSeries(varId, cell.lat, cell.lon, { signal });
+          if(series.years.length<10)throw new Error('At least 10 annual values are required for a regional trend.');
           const trend = TrendStats.analyze(series.years, series.values);
           results.push({ ...cell, series, trend, ok: true });
         } catch (err) {
@@ -227,7 +244,7 @@ const PowerAPI = (() => {
     return results;
   }
 
-  return { VARIABLES, getVariable, fetchSeries, fetchGrid, parseSeries, END_YEAR };
+  return { VARIABLES, getVariable, fetchSeries, fetchGrid, parseSeries, historyRecord, END_YEAR };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = PowerAPI;
