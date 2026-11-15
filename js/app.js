@@ -155,8 +155,6 @@
       }
     });
     map.on('load', () => { earthView = EarthView.mount(map, info => {
-      $('#utc-clock').textContent = info.time.toISOString().replace('T',' ').slice(0,19)+' UTC';
-      $('.data-badge').lastChild.textContent=info.live?' UTC LIGHTING ACTIVE':' HISTORICAL PREVIEW';
       document.getElementById('earth-status').textContent = `${info.live?'LIVE UTC':'HISTORICAL LIGHTING'} · ${info.time.toISOString().replace('T',' ').slice(0,19)} · ${info.night}`;
       $('#earth-status').title=$('#earth-status').textContent;
     });
@@ -391,12 +389,11 @@
         let full = seriesCache.get(cacheKey);
         if (!full) { full = await PowerAPI.fetchSeries(state.variable, loc.lat, loc.lon, { signal: ctrl.signal }); seriesCache.set(cacheKey,full); }
         if(ctrl.signal.aborted)return;
-        const count = state.historyYear ? full.years.filter(y=>y<=state.historyYear).length : full.years.length;
-        const series = {...full, years:full.years.slice(0,count),values:full.values.slice(0,count)};
-        if(count<10)throw new Error('Fewer than 10 annual values before the selected year.');
-        const trend = TrendStats.analyze(series.years, series.values);
+        const record=PowerAPI.historyRecord(full,state.variable,state.historyYear);
+        const {series}=record;
+        const trend=record.canAnalyze?TrendStats.analyze(series.years,series.values):null;
         if(ctrl.signal.aborted)return;
-        state.results[slot] = { series, trend };
+        state.results[slot]={series,trend,message:record.message};
       }));
       if (ctrl.signal.aborted) return;
       renderResults(active);
@@ -443,6 +440,13 @@
     const { series, trend } = state.results[slot];
     const v = PowerAPI.getVariable(state.variable);
     const loc = state.locations[slot];
+    if(!trend) {
+      const {message}=state.results[slot];
+      return `<article class="verdict-card"><header><h3>${escapeHtml(locationLabel(loc))}</h3></header>
+        <p class="card-sub">${escapeHtml(series.longname)}</p><p role="status">${escapeHtml(message)}</p>
+        ${series.years.length===1?`<p>${series.years[0]}: <strong>${TrendChart.fmt(series.values[0],v.decimals)} ${escapeHtml(series.units)}</strong></p>`:''}
+        ${series.years.length?`<div class="chart-wrap" id="chart-${slot}"></div>`:''}</article>`;
+    }
     const dir = directionWord(trend, state.variable);
     const dirClass = !trend.significant ? 'dir-none' : (trend.direction === 'up' ? 'dir-up' : 'dir-down');
     const arrow = !trend.significant ? '→' : (trend.direction === 'up' ? '↗' : '↘');
@@ -472,6 +476,7 @@
           <div><dt>Mann-Kendall</dt><dd>Z = ${TrendChart.fmt(trend.mk.Z, 2)}, ${pFmt(trend.mk.p)}</dd></div>
           <div><dt>Linear regression</dt><dd>${trend.ols.slope >= 0 ? '+' : '−'}${TrendChart.fmt(Math.abs(trend.ols.slope * 10), d)}/decade, ${pFmt(trend.ols.p)}, r² = ${TrendChart.fmt(trend.ols.r2, 2)}</dd></div>
         </dl>
+        ${state.results[slot].message?`<p role="status">${escapeHtml(state.results[slot].message)}</p>`:''}
         ${sigLine}
       </article>`;
   }
@@ -480,7 +485,7 @@
     const letters = state.mode === 'compare' ? ['A', 'B'] : [null, null];
     let html = slots.map(s => verdictCard(s, letters[s])).join('');
 
-    if (slots.length === 2) {
+    if (slots.length === 2 && slots.every(s=>state.results[s].trend)) {
       html += compareSummary();
     }
     html += `<div class="scan-cta">
@@ -493,11 +498,12 @@
     let yDomain = null;
     if (slots.length === 2) {
       const all = slots.flatMap(s => state.results[s].series.values);
-      yDomain = [Math.min(...all), Math.max(...all)];
+      if(all.length)yDomain = [Math.min(...all), Math.max(...all)];
     }
     const v = PowerAPI.getVariable(state.variable);
     for (const s of slots) {
       const { series, trend } = state.results[s];
+      if(!series.years.length)continue;
       TrendChart.render(document.getElementById('chart-' + s), {
         years: series.years, values: series.values, trend,
         units: series.units, decimals: v.decimals,
@@ -626,6 +632,7 @@
     statusEl.className = 'status ' + (kind || '');
   }
 
+  $('#history-year').min=Math.min(...PowerAPI.VARIABLES.map(v=>v.startYear));
   $('#history-year').max=PowerAPI.END_YEAR;
   $('#history-year').value=PowerAPI.END_YEAR;
   $('#year-value').textContent=PowerAPI.END_YEAR;

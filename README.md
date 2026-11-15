@@ -284,3 +284,20 @@ Environmental PNG tiles are also cached (96 entries), so returning to an unchang
 The Temperature visualization mode and dashboard navigation shortcuts were removed.
 Visualization buttons use text only. NASA POWER temperature trend analysis and
 point temperature readings remain available.
+
+## Historical coverage and short records
+
+The timeline supports 1981 through the last complete UTC year (2025 in 2026).
+Meteorological parameters in the catalog start in 1981; ALLSKY_SFC_SW_DWN
+starts in 1984. Local availability can differ (soil wetness needs land).
+Records with fewer than ten annual values now display their real values and
+charts without trend statistics. Ten values remain required for the existing
+trend dashboard and regional scan. Empty periods and missing selected years
+are stated explicitly; no earlier or missing observations are substituted.
+The monthly point endpoint supplies annual means under YYYY13 keys.
+
+Run the captured-response and historical coverage checks with:
+
+```sh
+/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc tests/power-history.test.js
+```

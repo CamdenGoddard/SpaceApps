@@ -65,6 +65,8 @@ const Dashboard = (() => {
       }catch(error){if(error.name!=='AbortError')box.textContent='Search unavailable · '+error.message;}
     });
     function historyYear(year){
+      year=Math.max(Number($('#history-year').min),Math.min(PowerAPI.END_YEAR,year));
+      $('#history-year').value=year;$('#year-value').textContent=year;
       clearTimeout(timelineTimer);
       history=true;mode='earth';layers.setMode('earth');earthView.setVisible($('#basemap').value==='nasa');earthView.setTime(new Date(Date.UTC(year,6,1,12)));
       $('#live-earth').setAttribute('aria-pressed','false');$('#timeline-status').textContent=`NASA POWER · annual record through ${year}. Lighting preview: July 1, 12:00 UTC.`;

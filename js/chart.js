@@ -64,14 +64,14 @@ const TrendChart = (() => {
     yMin -= pad; yMax += pad;
 
     const x0 = years[0], x1 = years[years.length - 1];
-    const sx = yr => M.left + ((yr - x0) / (x1 - x0)) * iw;
+    const sx = yr => M.left + (x1 === x0 ? 0.5 : (yr - x0) / (x1 - x0)) * iw;
     const sy = v => M.top + (1 - (v - yMin) / (yMax - yMin)) * ih;
 
     const svg = el('svg', {
       viewBox: `0 0 ${W} ${H}`,
       class: 'trend-chart',
       role: 'img',
-      'aria-label': `Annual time series ${x0}-${x1} with trend line`
+      'aria-label': `Annual time series ${x0}-${x1}${trend?' with trend line':''}`
     });
     container.appendChild(svg);
 
@@ -84,7 +84,7 @@ const TrendChart = (() => {
       lbl.textContent = fmt(t, decimals >= 3 ? 2 : decimals);
     }
     // x ticks (decades)
-    const xTicks = niceTicks(x0, x1, 6).filter(t => Number.isInteger(t));
+    const xTicks = x0 === x1 ? [x0] : niceTicks(x0, x1, 6).filter(t => Number.isInteger(t));
     for (const t of xTicks) {
       const x = sx(t);
       const lbl = el('text', { x, y: H - M.bottom + 18, class: 'tick', 'text-anchor': 'middle' }, svg);
@@ -99,6 +99,8 @@ const TrendChart = (() => {
     // data line
     const path = years.map((yr, i) => `${i ? 'L' : 'M'}${sx(yr).toFixed(1)},${sy(values[i]).toFixed(1)}`).join('');
     el('path', { d: path, fill: 'none', stroke: `var(${seriesVar})`, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+
+    if(years.length===1)el('circle',{cx:sx(x0),cy:sy(values[0]),r:4,fill:`var(${seriesVar})`},svg);
 
     // Sen's trend line (dashed), clipped to plot
     if (trend && trend.sen) {

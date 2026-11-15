@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=clean-header-20261115">
 </head>
 <body>
 
@@ -31,8 +31,6 @@
 
     <span class="header-title">Environmental intelligence <span style="color:#516e89">/</span> Earth observatory</span>
     <div class="header-meta">
-      <span class="data-badge"><span aria-hidden="true"></span> UTC LIGHTING ACTIVE</span>
-      <time id="utc-clock"></time>
       <span id="status" class="status" role="status" aria-live="polite"></span>
     </div>
   </header>
@@ -114,7 +112,7 @@
   <section class="timeline-panel" aria-label="Historical timeline">
     <div><span class="eyebrow">Time explorer</span><h2>Climate through the years</h2></div>
     <label for="history-year">Through <output id="year-value">2025</output></label>
-    <input id="history-year" type="range" min="1995" max="2025" value="2025" step="1">
+    <input id="history-year" type="range" min="1981" max="2025" value="2025" step="1">
     <button id="live-earth" type="button" aria-pressed="true">● Live Earth</button>
     <p id="timeline-status">Current UTC lighting · historical NASA POWER trends</p>
   </section>
@@ -137,6 +135,6 @@
   <script src="js/wind-particles.js"></script>
   <script src="js/environment-layers.js"></script>
   <script src="js/dashboard.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/app.js?v=clean-header-20261115"></script>
 </body>
 </html>
